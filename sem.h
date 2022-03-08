@@ -55,7 +55,7 @@ int sem_del(SEM *sem);
  *
  * Parameters:
  *
- * sem           handle of the semaphore to decrement
+ * sem handle of the semaphore to decrement
  */
 
 void P(SEM *sem);
