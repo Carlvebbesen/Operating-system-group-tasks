@@ -14,16 +14,7 @@
 #include <sys/wait.h>
 #include <sched.h>
 
-char webpage[] =
-"HTTP/0.9 200 OK\n"
-"Content-Type: text/html: charset=UTF-8\r\n\r\n"
-"<!DOCTYPE html>\r\n"
-"<html>\r\n"
-"<body>\r\n"
-"<h1>My First Heading</h1>\r\n"
-"<p>My first paragraph.</p>\r\n"
-"</body>\r\n"
-"</html>\r\n";
+#define webpage "<html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>"
 
 
 int main(int args, char *argsv[]) {
@@ -31,6 +22,7 @@ int main(int args, char *argsv[]) {
     struct sockaddr_in server_addr, client_addr;
     socklen_t sin_len = sizeof(client_addr);
     int fd_server, fd_client;
+    FILE *fp;
 
     char receiveBuffer[1024], senderBuffer[1024];
 
@@ -45,7 +37,7 @@ int main(int args, char *argsv[]) {
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_addr.sin_port = htons(atoi(argsv[1]));
+    server_addr.sin_port = htons(atoi(argsv[2]));
 
     int rv = bind(fd_server, (struct sockaddr*)&server_addr, sizeof(server_addr));
 
@@ -60,8 +52,14 @@ int main(int args, char *argsv[]) {
 
     listen(fd_server, 10);
 
+    char * fileLocation = argsv[1];
+    char * requestType;
+    char * filePath;
+    char data[1024] = {0};
+    
+    printf("\n Accepting connections at %s\n", argsv[2]);
+
     while(1) {
-        printf("\n Accepting connections at %s\n", argsv[1]);
         fd_client = accept(fd_server, (struct sockaddr *) &client_addr, &sin_len);
         if (fd_client == -1) {
             perror("Connection failed \n");
@@ -70,7 +68,22 @@ int main(int args, char *argsv[]) {
         printf("Connected with client \n");
         memset(receiveBuffer, 0, 1024);
         read(fd_client, receiveBuffer, 1023);
-        send(fd_client, webpage, sizeof(webpage), 0);
+        requestType = strtok(receiveBuffer, " ");
+        filePath = strtok(NULL, " ");
+        // while (requestType != NULL) {
+        //     printf("%s", requestType);
+        //     requestType = strtok(NULL, " ");
+        // }
+        fp = fopen(strcat(fileLocation, filePath), "r");
+ 
+        while(fgets(data, 1024, fp) != NULL) {
+            if (send(fd_client, data, sizeof(data), 0) == -1) {
+                perror("[-]Error in sending file.");
+                exit(1);
+            }
+            bzero(data, 1024);
+        }
+        fclose (fp);
         close(fd_client);
     }
 
