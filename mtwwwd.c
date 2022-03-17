@@ -14,7 +14,10 @@
 #include <sys/wait.h>
 #include <sched.h>
 
-#define webpage "<html><body><h1>My First Heading</h1><p>My first paragraph.</p></body></html>"
+#define ERRORHeaders "HTTP/1.1 404 Not Found\nContent-Type: text/html\n"
+#define ErrorBody "<html><body><h1>The requested page could not be found</h1></body></html>"
+#define OKResponseHeader "HTTP/1.1 200 OK\n"
+#define ResponseContentType "Content-Type: text/html\n"
 
 
 int main(int args, char *argsv[]) {
@@ -24,7 +27,10 @@ int main(int args, char *argsv[]) {
     int fd_server, fd_client;
     FILE *fp;
 
+    printf("Number of arguments: %d", args);
+
     char receiveBuffer[1024], senderBuffer[1024];
+    memset(receiveBuffer, 0, 1024);
 
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -52,9 +58,10 @@ int main(int args, char *argsv[]) {
 
     listen(fd_server, 10);
 
-    char * fileLocation = argsv[1];
+    char * fileLocation = strdup(argsv[1]);
     char * requestType;
     char * filePath;
+    char response[1024*4096], body[1024*2048];
     char data[1024] = {0};
     
     printf("\n Accepting connections at %s\n", argsv[2]);
@@ -66,24 +73,31 @@ int main(int args, char *argsv[]) {
             close(fd_client);
         }
         printf("Connected with client \n");
-        memset(receiveBuffer, 0, 1024);
+        bzero(receiveBuffer, sizeof(receiveBuffer));
         read(fd_client, receiveBuffer, 1023);
         requestType = strtok(receiveBuffer, " ");
+        fileLocation = strdup(argsv[1]);
         filePath = strtok(NULL, " ");
-        // while (requestType != NULL) {
-        //     printf("%s", requestType);
-        //     requestType = strtok(NULL, " ");
-        // }
-        fp = fopen(strcat(fileLocation, filePath), "r");
- 
+        strcpy(body, "");
+        bzero(data, sizeof(data));
+        if (!(fp = fopen(strcat(fileLocation, filePath), "r"))) {
+            snprintf(response, sizeof(response),
+                "%sContent-Length: %zu\n\n%s", ERRORHeaders, strlen(ErrorBody), ErrorBody);
+            send(fd_client, response, sizeof(response), 0);
+            close(fd_client);
+            continue;
+        }
         while(fgets(data, 1024, fp) != NULL) {
-            if (send(fd_client, data, sizeof(data), 0) == -1) {
-                perror("[-]Error in sending file.");
-                exit(1);
-            }
+            strcat(body, data);
             bzero(data, 1024);
         }
-        fclose (fp);
+        snprintf(response, sizeof(response),
+            "%sContent-Length: %zu\n\n%s", OKResponseHeader, strlen(body), body);
+        if(send(fd_client, response, sizeof(response), 0) == -1) {
+            perror("[-]Error in sending file.");
+            exit(1);
+        }
+        fclose(fp);
         close(fd_client);
     }
 
