@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
 #include <sched.h>
 #include "bbuffer.h"
 
@@ -18,8 +19,6 @@
 #define ErrorBody "<html><body><h1>The requested page could not be found</h1></body></html>"
 #define OKResponseHeader "HTTP/1.1 200 OK\n"
 #define ResponseContentType "Content-Type: text/html\n"
-
-BNDBUF *bb;
 
 void *handleRequest(void *arg) {
 
@@ -34,12 +33,14 @@ void *handleRequest(void *arg) {
     memset(receiveBuffer, 0, 1024);
 
     while(1) {
-        int fd = bb_get(bb);
+        int fd = bb_get(arg);
+
+        printf("Thread %ld got connection %d\n", syscall(__NR_gettid), fd);
 
         bzero(receiveBuffer, sizeof(receiveBuffer));
         read(fd, receiveBuffer, 1023);
         requestType = strtok(receiveBuffer, " ");
-        fileLocation = strdup(arg);
+        fileLocation = strdup("./doc");
         filePath = strtok(NULL, " ");
         strcpy(body, "");
         bzero(data, sizeof(data));
@@ -72,7 +73,8 @@ int main(int args, char *argsv[]) {
     struct sockaddr_in server_addr, client_addr;
     socklen_t sin_len = sizeof(client_addr);
     int fd_server, fd_client;
-    pthread_t *threadPool[atoi(argsv[2])];
+    // pthread_t *threadPool[atoi(argsv[3])];
+    pthread_t th1,th2, th3;
 
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -94,9 +96,13 @@ int main(int args, char *argsv[]) {
         exit(1);
     }
 
-    for (int i = 0; i < atoi(argsv[3]); i++) {
-        pthread_create(threadPool[i], NULL, &handleRequest, argsv[1]);
-    }
+    BNDBUF *bb = bb_init(2);
+
+    // for (int i = 0; i < atoi(argsv[3]); i++) {
+    pthread_create(&th1, NULL, handleRequest, (void *)bb);
+    pthread_create(&th2, NULL, handleRequest, (void *)bb);
+    pthread_create(&th3, NULL, handleRequest, (void *)bb);
+    // }
 
     listen(fd_server, 10);
 

@@ -1,32 +1,37 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "sem.h"
 
-struct SEM {
+typedef struct SEM {
     int value;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
-};
-
-struct SEM sem;
+} SEM;
 
 SEM *sem_init(int initVal) {
+    SEM *sem = malloc(sizeof(SEM));
 
-    if (pthread_mutex_init(&(sem.mutex), NULL)) {
+    if (pthread_mutex_init(&sem->mutex, NULL)) {
+        free(sem);
         perror("Something went wrong in initializing the mutex.");
         return NULL;
     }
-    if (pthread_cond_init(&(sem.cond), NULL)) {
+    if (pthread_cond_init(&sem->cond, NULL)) {
+        free(sem);
+        pthread_mutex_destroy(&sem->mutex);
         perror("Something went wrong in initializing the cond.");
         return NULL;
     }
 
-    sem.value = initVal;
-    return &sem;
+    sem->value = initVal;
+    return sem;
 }
 
 int sem_del(SEM *sem) {
-    //TODO
+    pthread_mutex_destroy(&sem->mutex);
+    pthread_cond_destroy(&sem->cond);
+    free(sem);
 }
 
 void P(SEM *sem) {

@@ -33,7 +33,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${fileDirname}/${fileBasenameNoExtension}",
-            "args": ["./doc", "8000"],
+            "args": ["./doc", "8000", "6"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

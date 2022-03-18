@@ -33,7 +33,7 @@ void bb_add(BNDBUF *bb, int fd) {
 
     bb->buffer[bb->head] = fd;
     ++bb->head;
-    if (bb->head >= bb->size)
+    if (bb->head >= (size_t)4)
     {
         bb->head = 0;
     }
@@ -50,7 +50,7 @@ int bb_get(BNDBUF *bb)
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
-    if (bb->tail >= bb->size) {
+    if (bb->tail >= 4) {
         bb->tail = 0;
     }
 
