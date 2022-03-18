@@ -9,10 +9,10 @@
 #include <sys/types.h>
 #include <time.h> 
 #include <pthread.h>
-#include <semaphore.h>
 #include <signal.h>
 #include <sys/wait.h>
 #include <sched.h>
+#include <bbuffer.h>
 
 #define ERRORHeaders "HTTP/1.1 404 Not Found\nContent-Type: text/html\n"
 #define ErrorBody "<html><body><h1>The requested page could not be found</h1></body></html>"
@@ -25,9 +25,9 @@ int main(int args, char *argsv[]) {
     struct sockaddr_in server_addr, client_addr;
     socklen_t sin_len = sizeof(client_addr);
     int fd_server, fd_client;
-    FILE *fp;
+    BNDBUF *bb;
 
-    printf("Number of arguments: %d", args);
+    FILE *fp;
 
     char receiveBuffer[1024], senderBuffer[1024];
     memset(receiveBuffer, 0, 1024);
@@ -72,7 +72,7 @@ int main(int args, char *argsv[]) {
             perror("Connection failed \n");
             close(fd_client);
         }
-        printf("Connected with client \n");
+        bb_add(bb, fd_client);
         bzero(receiveBuffer, sizeof(receiveBuffer));
         read(fd_client, receiveBuffer, 1023);
         requestType = strtok(receiveBuffer, " ");
