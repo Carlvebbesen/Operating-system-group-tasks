@@ -3,8 +3,8 @@
 #include <sem.h>
 #include "bbuffer.h"
 
-
-struct BNDBUF {
+struct BNDBUF
+{
     int buffer[1];
     SEM *pointerSync;
     SEM *freeSlotsSync;
@@ -16,7 +16,8 @@ struct BNDBUF {
 
 struct BNDBUF bndbuf;
 
-BNDBUF *bb_init(unsigned int *size) {
+BNDBUF *bb_init(unsigned int *size)
+{
 
     bndbuf.pointerSync = sem_init(1);
     bndbuf.freeSlotsSync = sem_init(size);
@@ -27,13 +28,15 @@ BNDBUF *bb_init(unsigned int *size) {
     return &bndbuf;
 }
 
-int bb_add(BNDBUF *bb, int fd) {
+int bb_add(BNDBUF *bb, int fd)
+{
     P(bb->freeSlotsSync);
     P(bb->pointerSync);
 
     bb->buffer[bb->head] = fd;
     ++bb->head;
-    if (bb->head >= bb->size) {
+    if (bb->head >= bb->size)
+    {
         bb->head = 0;
     }
 
@@ -41,14 +44,16 @@ int bb_add(BNDBUF *bb, int fd) {
     V(bb->fullSlotsSync);
 }
 
-int bb_get(BNDBUF *bb) {
+int bb_get(BNDBUF *bb)
+{
     P(bb->fullSlotsSync);
     P(bb->pointerSync);
 
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
-    if (bb->tail >= 4) {
+    if (bb->tail >= 4)
+    {
         bb->tail = 0;
     }
 
