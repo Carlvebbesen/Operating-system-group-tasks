@@ -63,6 +63,7 @@ void *handleRequest(void *arg) {
         fclose(fp);
         close(fd);
     }
+    return NULL;
 }
 
 
@@ -94,11 +95,11 @@ int main(int args, char *argsv[]) {
     }
 
     for (int i = 0; i < atoi(argsv[3]); i++) {
-        pthread_create(threadPool[i], NULL, handleRequest, argsv[1]);
+        pthread_create(threadPool[i], NULL, &handleRequest, argsv[1]);
     }
 
     listen(fd_server, 10);
-    
+
     printf("\n Accepting connections at %s\n", argsv[2]);
 
     while(1) {

@@ -4,7 +4,7 @@
 #include "bbuffer.h"
 
 
-struct BNDBUF {
+typedef struct BNDBUF {
     int buffer[4];
     SEM *pointerSync;
     SEM *freeSlotsSync;
@@ -12,9 +12,9 @@ struct BNDBUF {
     size_t head;
     size_t tail;
     unsigned int size;
-};
+} BNDBUF;
 
-struct BNDBUF bndbuf;
+BNDBUF bndbuf;
 
 BNDBUF *bb_init(unsigned int size) {
 

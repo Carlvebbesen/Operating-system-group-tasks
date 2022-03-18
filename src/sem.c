@@ -34,7 +34,7 @@ void P(SEM *sem) {
     pthread_mutex_lock(&(sem->mutex));
 
     while(sem->value==0) {
-        phtead_cond_wait(&(sem->cond), &(sem->mutex));
+        pthread_cond_wait(&(sem->cond), &(sem->mutex));
     }
     --sem->value;
 
