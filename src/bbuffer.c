@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <sem.h>
+#include "sem.h"
 #include "bbuffer.h"
 
-struct BNDBUF
-{
-    int buffer[1];
+
+struct BNDBUF {
+    int buffer[4];
     SEM *pointerSync;
     SEM *freeSlotsSync;
     SEM *fullSlotsSync;
@@ -16,8 +16,7 @@ struct BNDBUF
 
 struct BNDBUF bndbuf;
 
-BNDBUF *bb_init(unsigned int *size)
-{
+BNDBUF *bb_init(unsigned int size) {
 
     bndbuf.pointerSync = sem_init(1);
     bndbuf.freeSlotsSync = sem_init(size);
@@ -28,8 +27,7 @@ BNDBUF *bb_init(unsigned int *size)
     return &bndbuf;
 }
 
-int bb_add(BNDBUF *bb, int fd)
-{
+void bb_add(BNDBUF *bb, int fd) {
     P(bb->freeSlotsSync);
     P(bb->pointerSync);
 
@@ -52,8 +50,7 @@ int bb_get(BNDBUF *bb)
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
-    if (bb->tail >= 4)
-    {
+    if (bb->tail >= bb->size) {
         bb->tail = 0;
     }
 
