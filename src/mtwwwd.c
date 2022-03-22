@@ -15,13 +15,14 @@
 #include "bbuffer.h"
 
 #define ERRORHeaders "HTTP/1.1 404 Not Found\nContent-Type: text/html\n"
-#define ErrorBody "<html><body><h1>The requested page could not be found</h1></body></html>"
+#define ErrorBody "<html><body><h1>The requested page could not be found</h1><img src='https://as1.ftcdn.net/v2/jpg/01/41/11/48/1000_F_141114881_1NUIUQ3uDi6EqDijNPoUHPN81dYONt1E.jpg' alt='duck'/></body></html>"
 #define OKResponseHeader "HTTP/1.1 200 OK\n"
 #define ResponseContentType "Content-Type: text/html\n"
 
 char *fileDirectory;
 
-void *handleRequest(void *arg) {
+void *handleRequest(void *arg)
+{
 
     char receiveBuffer[1024], senderBuffer[1024];
     FILE *fp;
@@ -104,7 +105,8 @@ int main(int args, char *argsv[])
 
     BNDBUF *bb = bb_init(atoi(argsv[4]));
 
-    for (int i = 0; i < sizeof(threadPool)/sizeof(threadPool[0]); i++) {
+    for (int i = 0; i < sizeof(threadPool) / sizeof(threadPool[0]); i++)
+    {
         pthread_create(&threadPool[i], NULL, handleRequest, (void *)bb);
     }
 

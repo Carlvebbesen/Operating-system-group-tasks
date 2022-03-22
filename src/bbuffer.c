@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include "sem.h"
 #include "bbuffer.h"
+#include <string.h>
 
-
-typedef struct BNDBUF {
+typedef struct BNDBUF
+{
     int *buffer;
     SEM *pointerSync;
     SEM *freeSlotsSync;
@@ -15,7 +16,8 @@ typedef struct BNDBUF {
 
 BNDBUF bndbuf;
 
-BNDBUF *bb_init(unsigned int size) {
+BNDBUF *bb_init(unsigned int size)
+{
 
     int newBuffer[size];
 
@@ -30,7 +32,8 @@ BNDBUF *bb_init(unsigned int size) {
     return &bndbuf;
 }
 
-void bb_add(BNDBUF *bb, int fd) {
+void bb_add(BNDBUF *bb, int fd)
+{
     P(bb->freeSlotsSync);
     P(bb->pointerSync);
 
@@ -53,7 +56,8 @@ int bb_get(BNDBUF *bb)
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
-    if (bb->tail >= sizeof(bb->buffer)) {
+    if (bb->tail >= sizeof(bb->buffer))
+    {
         bb->tail = 0;
     }
 
