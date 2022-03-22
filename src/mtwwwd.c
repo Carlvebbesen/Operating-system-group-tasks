@@ -20,6 +20,8 @@
 #define OKResponseHeader "HTTP/1.1 200 OK\n"
 #define ResponseContentType "Content-Type: text/html\n"
 
+char *fileDirectory;
+
 void *handleRequest(void *arg) {
 
     char receiveBuffer[1024], senderBuffer[1024];
@@ -40,7 +42,7 @@ void *handleRequest(void *arg) {
         bzero(receiveBuffer, sizeof(receiveBuffer));
         read(fd, receiveBuffer, 1023);
         requestType = strtok(receiveBuffer, " ");
-        fileLocation = strdup("./doc");
+        fileLocation = strdup(fileDirectory);
         filePath = strtok(NULL, " ");
         strcpy(body, "");
         bzero(data, sizeof(data));
@@ -73,8 +75,9 @@ int main(int args, char *argsv[]) {
     struct sockaddr_in server_addr, client_addr;
     socklen_t sin_len = sizeof(client_addr);
     int fd_server, fd_client;
-    // pthread_t *threadPool[atoi(argsv[3])];
-    pthread_t th1,th2, th3;
+    pthread_t threadPool[atoi(argsv[3])];
+
+    fileDirectory = argsv[1];
 
     fd_server = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -96,13 +99,11 @@ int main(int args, char *argsv[]) {
         exit(1);
     }
 
-    BNDBUF *bb = bb_init(2);
+    BNDBUF *bb = bb_init(atoi(argsv[4]));
 
-    // for (int i = 0; i < atoi(argsv[3]); i++) {
-    pthread_create(&th1, NULL, handleRequest, (void *)bb);
-    pthread_create(&th2, NULL, handleRequest, (void *)bb);
-    pthread_create(&th3, NULL, handleRequest, (void *)bb);
-    // }
+    for (int i = 0; i < sizeof(threadPool)/sizeof(threadPool[0]); i++) {
+        pthread_create(&threadPool[i], NULL, handleRequest, (void *)bb);
+    }
 
     listen(fd_server, 10);
 

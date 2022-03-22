@@ -32,6 +32,7 @@ int sem_del(SEM *sem) {
     pthread_mutex_destroy(&sem->mutex);
     pthread_cond_destroy(&sem->cond);
     free(sem);
+    return 0;
 }
 
 void P(SEM *sem) {

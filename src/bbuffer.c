@@ -1,23 +1,26 @@
 #include <stdio.h>
-#include <stdbool.h>
+#include <stdlib.h>
 #include "sem.h"
 #include "bbuffer.h"
 
 
 typedef struct BNDBUF {
-    int buffer[4];
+    int *buffer;
     SEM *pointerSync;
     SEM *freeSlotsSync;
     SEM *fullSlotsSync;
     size_t head;
     size_t tail;
-    unsigned int size;
 } BNDBUF;
 
 BNDBUF bndbuf;
 
 BNDBUF *bb_init(unsigned int size) {
 
+    int newBuffer[size];
+
+    bndbuf.buffer = malloc(size * sizeof(int));
+    memcpy(bndbuf.buffer, newBuffer, size * sizeof(int));
     bndbuf.pointerSync = sem_init(1);
     bndbuf.freeSlotsSync = sem_init(size);
     bndbuf.fullSlotsSync = sem_init(0);
@@ -33,7 +36,7 @@ void bb_add(BNDBUF *bb, int fd) {
 
     bb->buffer[bb->head] = fd;
     ++bb->head;
-    if (bb->head >= (size_t)4)
+    if (bb->head >= sizeof(bb->buffer))
     {
         bb->head = 0;
     }
@@ -50,7 +53,7 @@ int bb_get(BNDBUF *bb)
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
-    if (bb->tail >= 4) {
+    if (bb->tail >= sizeof(bb->buffer)) {
         bb->tail = 0;
     }
 
