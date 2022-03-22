@@ -1,6 +1,6 @@
 # Thanks to Job Vranish (https://spin.atomicobject.com/2016/08/26/makefile-c-projects/)
 
-TARGET ?= a.out
+TARGET ?= mtwwwd
 SRC_DIRS ?= ./src
 
 SRCS := $(shell find $(SRC_DIRS) -name *.cpp -or -name *.c -or -name *.s)
