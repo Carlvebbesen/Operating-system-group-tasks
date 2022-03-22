@@ -27,7 +27,7 @@ void *handleRequest(void *arg)
     char *fileLocation;
     char *requestType;
     char *filePath;
-    char response[1024 * 1000], body[1024 * 1000];
+    char response[1024 * 200], body[1024 * 200];
     char data[1024] = {0};
 
     memset(receiveBuffer, 0, 1024);
@@ -38,8 +38,9 @@ void *handleRequest(void *arg)
         bzero(receiveBuffer, sizeof(receiveBuffer));
         read(fd, receiveBuffer, 1023);
         requestType = strtok(receiveBuffer, " ");
-        fileLocation = strdup("./doc");
+        fileLocation = strdup("./src/doc");
         filePath = strtok(NULL, " ");
+        printf("File path: %s%s\n", fileLocation, filePath);
         strcpy(body, "");
         bzero(data, sizeof(data));
         if (!(fp = fopen(strcat(fileLocation, filePath), "r")))
