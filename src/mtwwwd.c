@@ -27,7 +27,7 @@ void *handleRequest(void *arg)
     char *fileLocation;
     char *requestType;
     char *filePath;
-    char response[1024 * 4096], body[1024 * 2048];
+    char response[1024 * 1000], body[1024 * 1000];
     char data[1024] = {0};
 
     memset(receiveBuffer, 0, 1024);
