@@ -3,6 +3,9 @@
 #include "sem.h"
 #include "bbuffer.h"
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
 
 typedef struct BNDBUF
 {
@@ -39,7 +42,7 @@ void bb_add(BNDBUF *bb, int fd)
 
     bb->buffer[bb->head] = fd;
     ++bb->head;
-    if (bb->head >= sizeof(bb->buffer))
+    if (bb->head > sizeof(bb->buffer) / sizeof(int))
     {
         bb->head = 0;
     }
@@ -53,13 +56,17 @@ int bb_get(BNDBUF *bb)
     P(bb->fullSlotsSync);
     P(bb->pointerSync);
 
+    printf("Getting fd at thread %zu \n", syscall(__NR_gettid));
+
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
-    if (bb->tail >= sizeof(bb->buffer))
+    if (bb->tail > sizeof(bb->buffer) / sizeof(int))
     {
         bb->tail = 0;
     }
+
+    printf("Leaving getter at thread %zu \n", syscall(__NR_gettid));
 
     V(bb->pointerSync);
     V(bb->freeSlotsSync);

@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <sys/syscall.h>
 #include <sched.h>
 #include "bbuffer.h"
 
@@ -23,13 +24,12 @@ char *fileDirectory;
 
 void *handleRequest(void *arg)
 {
-
     char receiveBuffer[1024], senderBuffer[1024];
     FILE *fp;
     char *fileLocation;
     char *requestType;
     char *filePath;
-    char response[1024 * 200], body[1024 * 200];
+    char response[1024 * 200], body[1024 * 150];
     char data[1024] = {0};
 
     memset(receiveBuffer, 0, 1024);
@@ -42,6 +42,7 @@ void *handleRequest(void *arg)
         requestType = strtok(receiveBuffer, " ");
         fileLocation = strdup(fileDirectory);
         filePath = strtok(NULL, " ");
+        printf("Thread %zu handling connection %d", syscall(__NR_gettid), fd);
         printf("File path: %s%s\n", fileLocation, filePath);
         strcpy(body, "");
         bzero(data, sizeof(data));

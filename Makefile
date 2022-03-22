@@ -10,10 +10,10 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := ./include
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -g -pthread
 
 $(TARGET): $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -o $@ $(LOADLIBES) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(OBJS) -pthread -o $@ $(LOADLIBES) $(LDLIBS)
 
 .PHONY: clean
 clean:
