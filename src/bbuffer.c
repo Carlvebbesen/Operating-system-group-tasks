@@ -35,6 +35,14 @@ BNDBUF *bb_init(unsigned int size)
     return &bndbuf;
 }
 
+void bb_del(BNDBUF *bb) {
+    free(bb->buffer);
+    sem_del(bb->pointerSync);
+    sem_del(bb->freeSlotsSync);
+    sem_del(bb->fullSlotsSync);
+    free(bb);
+}
+
 void bb_add(BNDBUF *bb, int fd)
 {
     P(bb->freeSlotsSync);

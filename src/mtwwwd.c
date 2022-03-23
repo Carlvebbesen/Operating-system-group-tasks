@@ -42,7 +42,7 @@ void *handleRequest(void *arg)
         requestType = strtok(receiveBuffer, " ");
         fileLocation = strdup(fileDirectory);
         filePath = strtok(NULL, " ");
-        printf("Thread %zu handling connection %d", syscall(__NR_gettid), fd);
+        printf("Thread %zu handling connection %d \n", syscall(__NR_gettid), fd);
         printf("File path: %s%s\n", fileLocation, filePath);
         strcpy(body, "");
         bzero(data, sizeof(data));
@@ -74,7 +74,6 @@ void *handleRequest(void *arg)
 
 int main(int args, char *argsv[])
 {
-
     struct sockaddr_in server_addr, client_addr;
     socklen_t sin_len = sizeof(client_addr);
     int fd_server, fd_client;
