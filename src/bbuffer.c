@@ -63,9 +63,6 @@ int bb_get(BNDBUF *bb)
 {
     P(bb->fullSlotsSync);
     P(bb->pointerSync);
-
-    printf("Getting fd at thread %zu \n", syscall(__NR_gettid));
-
     int fd = bb->buffer[bb->tail];
     bb->buffer[bb->tail] = 0;
     ++bb->tail;
@@ -73,9 +70,6 @@ int bb_get(BNDBUF *bb)
     {
         bb->tail = 0;
     }
-
-    printf("Leaving getter at thread %zu \n", syscall(__NR_gettid));
-
     V(bb->pointerSync);
     V(bb->freeSlotsSync);
 

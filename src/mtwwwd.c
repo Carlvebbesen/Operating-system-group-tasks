@@ -42,7 +42,6 @@ void *handleRequest(void *arg)
         requestType = strtok(receiveBuffer, " ");
         fileLocation = strdup(fileDirectory);
         filePath = strtok(NULL, " ");
-        printf("Thread %zu handling connection %d \n", syscall(__NR_gettid), fd);
         printf("File path: %s%s\n", fileLocation, filePath);
         strcpy(body, "");
         bzero(data, sizeof(data));
