@@ -5,6 +5,7 @@
 
 char *splitPath(char *path)
 {
+    printf("path: %s\n", path);
     char *param;
     const char *arguments[10];
     int i = 0;
@@ -15,15 +16,24 @@ char *splitPath(char *path)
         arguments[i] = param;
         i++;
     }
+    else
+    {
+        arguments[i] = path;
+        return arguments;
+    }
     while (param != NULL)
     {
+        printf("args: %s\n", &arguments[i]);
         param = strtok(NULL, delemit);
+        printf("param %s\n", param);
+
         if (param != NULL)
         {
             arguments[i] = param;
             i++;
         }
     }
+    printf("here");
     return arguments;
 }
 
