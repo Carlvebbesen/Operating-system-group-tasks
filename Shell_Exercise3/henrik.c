@@ -24,7 +24,7 @@ int executeCommand(char *inputBuffer)
 {
     char *newArg;
     char *args[10];
-    newArg = strtok(inputBuffer, " \n");
+    newArg = strtok(inputBuffer, " \t");
     int i = 0;
     while (newArg != NULL)
     {
