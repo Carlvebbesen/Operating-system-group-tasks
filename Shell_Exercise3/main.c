@@ -3,21 +3,18 @@
 #include <limits.h>
 #include <string.h>
 
-char **splitPath(char *path)
+char **splitPath(char *path, char **arguments)
 {
-    char *param;
-    char *arguments[10];
     int i = 0;
     char delemit[] = " \t";
-    param = strtok(path, delemit);
+    char *param = strtok(path, delemit);
     if (param != NULL)
     {
-        arguments[i] = param;
-        i++;
+        arguments[i++] = param;
     }
     else
     {
-        arguments[i] = *path;
+        arguments[i] = path;
         return arguments;
     }
     while (param != NULL)
@@ -25,8 +22,7 @@ char **splitPath(char *path)
         param = strtok(NULL, delemit);
         if (param != NULL)
         {
-            arguments[i] = param;
-            i++;
+            arguments[i++] = param;
         }
     }
     return arguments;
@@ -46,7 +42,8 @@ int main()
             printf("%s: ", cwd);
             scanf("%25s", enteredText);
             printf("Your entered text was: %s\n", enteredText);
-            strcpy(command, splitPath(enteredText));
+            arguments = splitPath(enteredText, arguments);
+            strcpy(command, arguments);
             printf("Your command was: %s \n", command);
         }
         else
