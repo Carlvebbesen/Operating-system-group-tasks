@@ -76,10 +76,25 @@ int main()
             bzero(command, 25);
             printf("%s: ", cwd);
             fgets(command, 25, stdin);
+            command[strcspn(command, "\n")] = 0;
 
-            printf("command: %s", command);
-            if (!strcmp(command, "cd")) {
-                changeDir("..");
+            char * pch;
+            printf ("Splitting string \"%s\" into tokens:\n", command);
+            pch = strtok (command," ");
+            printf("pch: %s\n", pch);
+
+            char cmd[25];
+            strcpy(cmd, pch);
+            char path[25];
+            printf("cmd: %s\n", cmd);
+            while (pch != NULL)
+            {
+                printf ("%s\n",pch);
+                pch = strtok (NULL, " ");
+                strcpy(path, pch);
+            }
+            if (!strcmp(cmd, "cd")) {
+                changeDir(path);
             }
 
             fflush(stdout);
