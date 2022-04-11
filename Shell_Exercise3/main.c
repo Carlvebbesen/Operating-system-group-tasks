@@ -3,24 +3,27 @@
 #include <limits.h>
 #include <string.h>
 
-char **splitPath(char *path)
+char *splitPath(char *path)
 {
     char *param;
-    char **arguments;
+    const char *arguments[10];
     int i = 0;
-    do
+    char delemit[] = " \t";
+    param = strtok(path, delemit);
+    if (param != NULL)
     {
-        param = strtok(path, " ");
-        if (param == NULL)
-        {
-            param = strtok(path, "\t");
-        }
+        arguments[i] = param;
+        i++;
+    }
+    while (param != NULL)
+    {
+        param = strtok(NULL, delemit);
         if (param != NULL)
         {
             arguments[i] = param;
             i++;
         }
-    } while (param != NULL);
+    }
     return arguments;
 }
 

@@ -17,27 +17,6 @@ char *getWorkingDir()
     }
 }
 
-char *splitPath(char *path)
-{
-    char *param;
-    const char *arguments[10];
-    int i = 0;
-    do
-    {
-        param = strtok(path, " ");
-        if (param == NULL)
-        {
-            param = strtok(path, "\t");
-        }
-        if (param != NULL)
-        {
-            arguments[i] = param;
-            i++;
-        }
-    } while (param != NULL);
-    return arguments;
-}
-
 int main()
 {
     char command[25];
@@ -50,8 +29,6 @@ int main()
             printf("%s: ", cwd);
             scanf("%25s", command);
             printf("Your command was: %s\n", command);
-            printf(&splitPath(command)[0]);
-
             fflush(stdout);
         }
         else
