@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 char *getWorkingDir()
 {
@@ -17,45 +20,12 @@ char *getWorkingDir()
     }
 }
 
-char *splitPath(char *path)
-{
-    printf("path: %s\n", path);
-    char *param;
-    const char *arguments[10];
-    int i = 0;
-    char delemit[] = " \t";
-    param = strtok(path, delemit);
-    if (param != NULL)
-    {
-        arguments[i] = param;
-        i++;
-    }
-    else
-    {
-        arguments[i] = path;
-        return arguments;
-    }
-    while (param != NULL)
-    {
-        printf("args: %s\n", &arguments[i]);
-        param = strtok(NULL, delemit);
-        printf("param %s\n", param);
-
-        if (param != NULL)
-        {
-            arguments[i] = param;
-            i++;
-        }
-    }
-    printf("here");
-    return arguments;
-}
-
 void changeDir(const char *path) {
     //Ignorerer tom path
     if (!strcmp(path, "")) {
         return;
     }
+
     int dirVal = chdir(path);
 
     //Hvis path ikke finnes:
@@ -64,11 +34,38 @@ void changeDir(const char *path) {
     }
 }
 
+int executeCommand(char *inputBuffer)
+{
+    char *newArg;
+    char *args[10];
+    newArg = strtok(inputBuffer, " ");
+    int i = 0;
+    while (newArg != NULL)
+    {
+        args[i] = newArg;
+        i++;
+        newArg = strtok(NULL, " ");
+    }
+    args[i] = NULL;
+    if (!strcmp(args[0], "cd")) {
+        changeDir(args[1]);
+    } else {
+        execvp(args[0], args);
+        exit(0);
+    }
+
+
+}
+
+
+
 int main()
 {
     char command[25];
     char cwd[PATH_MAX];
     char *enteredText;
+    int status;
+
     while (1)
     {
         if (getcwd(cwd, sizeof(cwd)) != NULL)
@@ -76,25 +73,27 @@ int main()
             bzero(command, 25);
             printf("%s: ", cwd);
             fgets(command, 25, stdin);
-            command[strcspn(command, "\n")] = 0;
-
-            char * pch;
-            printf ("Splitting string \"%s\" into tokens:\n", command);
-            pch = strtok (command," ");
-            printf("pch: %s\n", pch);
-
-            char cmd[25];
-            strcpy(cmd, pch);
-            char path[25];
-            printf("cmd: %s\n", cmd);
-            while (pch != NULL)
+            if (feof(stdin))
             {
-                printf ("%s\n",pch);
-                pch = strtok (NULL, " ");
-                strcpy(path, pch);
+                exit(0);
             }
-            if (!strcmp(cmd, "cd")) {
-                changeDir(path);
+            command[strcspn(command, "\n")] = 0;
+            char dest[2];
+            strncpy(dest, command, 2);
+
+            //For å droppe forking om kommandoen er cd
+            if (!strcmp(dest, "cd")) {
+                executeCommand(command);
+            } else {
+                if (fork() == 0)
+                {
+                    executeCommand(command);
+                }
+                else
+                {
+                    waitpid(-1, &status, 0);
+                    printf("Exit status [%s] = %d \n", command, status);
+                }
             }
 
             fflush(stdout);
