@@ -25,6 +25,7 @@ void changeDir(const char *path) {
     if (!strcmp(path, "")) {
         return;
     }
+
     int dirVal = chdir(path);
 
     //Hvis path ikke finnes:
@@ -79,6 +80,8 @@ int main()
             command[strcspn(command, "\n")] = 0;
             char dest[2];
             strncpy(dest, command, 2);
+
+            //For å droppe forking om kommandoen er cd
             if (!strcmp(dest, "cd")) {
                 executeCommand(command);
             } else {
