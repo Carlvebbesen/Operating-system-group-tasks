@@ -51,8 +51,14 @@ char *splitPath(char *path)
     return arguments;
 }
 
-int changeDir(const char *path) {
+void changeDir(const char *path) {
+    //Ignorerer tom path
+    if (!strcmp(path, "")) {
+        return;
+    }
     int dirVal = chdir(path);
+
+    //Hvis path ikke finnes:
     if (dirVal == -1) {
         printf("cd: no such file or directory: %s\n", path);
     }
@@ -69,12 +75,26 @@ int main()
         {
             bzero(command, 25);
             printf("%s: ", cwd);
-            scanf("%25s", command);
-            //printf("Your command was: %s\n", command);
-            strcpy(command, splitPath(enteredText));
-            printf("Your command was: %s \n", command);
-            if (!strcmp(command, "cd")) {
-                changeDir("..");
+            fgets(command, 25, stdin);
+            command[strcspn(command, "\n")] = 0;
+
+            char * pch;
+            printf ("Splitting string \"%s\" into tokens:\n", command);
+            pch = strtok (command," ");
+            printf("pch: %s\n", pch);
+
+            char cmd[25];
+            strcpy(cmd, pch);
+            char path[25];
+            printf("cmd: %s\n", cmd);
+            while (pch != NULL)
+            {
+                printf ("%s\n",pch);
+                pch = strtok (NULL, " ");
+                strcpy(path, pch);
+            }
+            if (!strcmp(cmd, "cd")) {
+                changeDir(path);
             }
 
             fflush(stdout);
