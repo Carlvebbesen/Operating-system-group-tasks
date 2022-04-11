@@ -17,6 +17,40 @@ char *getWorkingDir()
     }
 }
 
+char *splitPath(char *path)
+{
+    printf("path: %s\n", path);
+    char *param;
+    const char *arguments[10];
+    int i = 0;
+    char delemit[] = " \t";
+    param = strtok(path, delemit);
+    if (param != NULL)
+    {
+        arguments[i] = param;
+        i++;
+    }
+    else
+    {
+        arguments[i] = path;
+        return arguments;
+    }
+    while (param != NULL)
+    {
+        printf("args: %s\n", &arguments[i]);
+        param = strtok(NULL, delemit);
+        printf("param %s\n", param);
+
+        if (param != NULL)
+        {
+            arguments[i] = param;
+            i++;
+        }
+    }
+    printf("here");
+    return arguments;
+}
+
 int changeDir(const char *path) {
     int dirVal = chdir(path);
     if (dirVal == -1) {
@@ -28,6 +62,7 @@ int main()
 {
     char command[25];
     char cwd[PATH_MAX];
+    char *enteredText;
     while (1)
     {
         if (getcwd(cwd, sizeof(cwd)) != NULL)
@@ -36,8 +71,10 @@ int main()
             printf("%s: ", cwd);
             scanf("%25s", command);
             //printf("Your command was: %s\n", command);
-            if (strcmp(command, "cd")) {
-                changeDir(command);
+            strcpy(command, splitPath(enteredText));
+            printf("Your command was: %s \n", command);
+            if (!strcmp(command, "cd")) {
+                changeDir("..");
             }
 
             fflush(stdout);
