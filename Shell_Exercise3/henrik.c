@@ -22,12 +22,10 @@ char *getWorkingDir()
 
 int executeCommand(char *inputBuffer)
 {
-    char *command;
     char *newArg;
-    char **args;
-    strcpy(strtok(inputBuffer, " "), command);
+    char *args[10];
+    newArg = strtok(inputBuffer, " ");
     int i = 0;
-    newArg = strtok(NULL, " ");
     while (newArg != NULL)
     {
         args[i] = newArg;
@@ -35,7 +33,7 @@ int executeCommand(char *inputBuffer)
         newArg = strtok(NULL, " ");
     }
     args[i] = NULL;
-    execv(command, args);
+    execvp(args[0], args);
     exit(0);
 }
 
