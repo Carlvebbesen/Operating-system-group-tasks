@@ -54,13 +54,19 @@ int main()
                 exit(0);
             }
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
+            printf("Your entered text was: %s\n", inputBuffer);
             if (fork() == 0)
             {
                 executeCommand(inputBuffer);
             }
-            else
+            else if (strcmp(inputBuffer[strlen(inputBuffer) - 1], '&') != 0)
             {
                 waitpid(-1, &status, 0);
+                printf("Exit status [%s] = %d \n", inputBuffer, status);
+            }
+            else
+            {
+                waitpid(-1, &status, WNOHANG);
                 printf("Exit status [%s] = %d \n", inputBuffer, status);
             }
             fflush(stdout);
