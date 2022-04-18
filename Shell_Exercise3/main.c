@@ -75,7 +75,7 @@ int executeCommand(char *command)
         execvp(args[0], args);
         if (errno)
         {
-            printf("%s: command not found\n", args[0]);
+            printf("Flush: command not found: %s\n", args[0]);
         }
     }
 }
@@ -173,6 +173,7 @@ int main()
     int status;
     int backgroundProcessStatus;
     char dest[3];
+    char jobs[5];
     struct linkedList *processList = malloc(sizeof(struct linkedList));
     int isBackground = 0;
     int index;
@@ -185,6 +186,7 @@ int main()
             bzero(inputBuffer, 50);
 
             struct processNode *nextProcess = processList->head;
+            struct processNode *nextProcessHead = processList->head;
 
             while (nextProcess != NULL)
             {
@@ -217,6 +219,8 @@ int main()
 
             strncpy(dest, inputBuffer, 2);
             dest[2] = '\0';
+            strncpy(jobs, inputBuffer, 4);
+            jobs[4] = '\0';
             if (!strcmp(dest, "cd"))
             {
                 index = strlen(inputBuffer) - 1;
@@ -237,6 +241,16 @@ int main()
                     executeCommand(inputBuffer);
                 }
             }
+            else if (!strcmp(jobs, "jobs"))
+            {
+                struct processNode *runningProcesses = processList->head;
+
+                while (runningProcesses != NULL)
+                {
+                    printf("Pid: %d, Command: %s \n", runningProcesses->pid, runningProcesses->command);
+                    runningProcesses = runningProcesses->nextNode;
+                }
+            }
             else
             {
                 child_pid = fork();
@@ -246,7 +260,8 @@ int main()
                 }
                 else
                 {
-                    if (isBackground) {
+                    if (isBackground)
+                    {
                         addProcessNode(processList, child_pid, inputBuffer);
                     }
                     else

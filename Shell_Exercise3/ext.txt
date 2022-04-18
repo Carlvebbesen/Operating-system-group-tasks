@@ -1,0 +1,11 @@
+a.out
+carl.c
+ext.txt
+hello
+henrik
+henrik.c
+main.c
+main2.c
+marius.c
+text.txt
+text2.txt
