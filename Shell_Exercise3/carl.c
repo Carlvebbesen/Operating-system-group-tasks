@@ -14,36 +14,70 @@ struct LinkedList
     struct LinkedList *next;
 };
 
-typedef struct LinkedList *node; // Define node as pointer of data type struct LinkedList
+typedef struct LinkedList *node;
 
 node createNode()
 {
-    node temp;                                      // declare a node
-    temp = (node)malloc(sizeof(struct LinkedList)); // allocate memory using malloc()
-    temp->next = NULL;                              // make next point to NULL
-    return temp;                                    // return the new node
+    node temp;
+    temp = (node)malloc(sizeof(struct LinkedList));
+    temp->next = NULL;
+    return temp;
 }
 
 node addNode(node head, int pid, char *cmd)
 {
-    node temp, p;        // declare two nodes temp and p
-    temp = createNode(); // createNode will return a new node with data = pid and next pointing to NULL.
-    temp->command = cmd; // assign the command to the node
-    temp->id = pid;      // add element's pid to data part of node
+    node temp, p;
+    temp = createNode();
+    temp->command = cmd;
+    temp->id = pid;
     if (head == NULL)
     {
-        head = temp; // when linked list is empty
+        head = temp;
     }
     else
     {
-        p = head; // assign head to p
+        p = head;
         while (p->next != NULL)
         {
-            p = p->next; // traverse the list until p is the last node.The last node always points to NULL.
+            p = p->next;
         }
-        p->next = temp; // Point the previous last node to the new node created.
+        p->next = temp;
     }
     return head;
+}
+
+int getExitStatusZombie(int p_id)
+{
+    int stat;
+    if (waitpid(p_id, &stat, WNOHANG))
+    {
+        if (WIFEXITED(stat))
+        {
+            return WEXITSTATUS(stat);
+        }
+    }
+    return -1;
+}
+
+void printAndRemoveZombies(node head)
+{
+    node currentNode = head;
+    node newNode = head->next;
+    int status;
+    do
+    {
+        status = getExitStatusZombie(currentNode->id);
+        if (status != -1)
+        {
+            printf("Background Exit cmd: %s, status: %d \n", currentNode->command, status);
+            free(currentNode);
+        }
+        else
+        {
+            currentNode = newNode;
+        }
+        newNode = currentNode->next;
+    } while (currentNode->next != NULL);
 }
 
 char *getWorkingDir()
@@ -60,13 +94,29 @@ char *getWorkingDir()
     }
 }
 
-int executeCommand(char *inputBuffer)
+void changeDir(const char *path)
+{
+    // Ignorerer tom path
+    if (!strcmp(path, ""))
+    {
+        return;
+    }
+
+    int dirVal = chdir(path);
+
+    // Hvis path ikke finnes:
+    if (dirVal == -1)
+    {
+        printf("cd: no such file or directory: %s\n", path);
+    }
+}
+
+int executeCommand(char *command)
 {
     char *newArg;
     char *args[10];
-    newArg = strtok(inputBuffer, " \t");
+    newArg = strtok(command, " \t");
     int i = 0;
-    sleep(3);
     while (newArg != NULL)
     {
         args[i] = newArg;
@@ -74,59 +124,128 @@ int executeCommand(char *inputBuffer)
         newArg = strtok(NULL, " \t");
     }
     args[i] = NULL;
-    execvp(args[0], args);
+    if (!strcmp(args[0], "cd"))
+    {
+        changeDir(args[1]);
+    }
+    else
+    {
+        execvp(args[0], args);
+    }
+}
+
+int handleCommand(char *inputBuffer)
+{
+    char *command;
+    char *inputDest;
+    char *outputDest;
+
+    size_t outputRedLoc = strcspn(inputBuffer, ">");
+    size_t inputRedLoc = strcspn(inputBuffer, "<");
+
+    long hasInputRedirection = strlen(inputBuffer) - inputRedLoc;
+    long hasOutputRedirection = strlen(inputBuffer) - outputRedLoc;
+
+    if (hasInputRedirection && hasOutputRedirection)
+    {
+        if (inputRedLoc < outputRedLoc)
+        {
+            command = strtok(inputBuffer, "<>");
+            inputDest = strtok(NULL, "<>");
+            outputDest = strtok(NULL, "<>");
+        }
+        else
+        {
+            command = strtok(inputBuffer, "<>");
+            outputDest = strtok(NULL, "<>");
+            inputDest = strtok(NULL, "<>");
+        }
+        outputDest++;
+        inputDest++;
+        inputDest[strlen(inputDest) - 1] = '\0';
+        freopen(inputDest, "r", stdin);
+        freopen(outputDest, "w", stdout);
+    }
+    else if (hasInputRedirection)
+    {
+        command = strtok(inputBuffer, "<>");
+        inputDest = strtok(NULL, "<>");
+        inputDest++;
+        freopen(inputDest, "r", stdin);
+    }
+    else if (hasOutputRedirection)
+    {
+        command = strtok(inputBuffer, "<>");
+        outputDest = strtok(NULL, "<>");
+        outputDest++;
+        freopen(outputDest, "w", stdout);
+    }
+    else
+    {
+        command = inputBuffer;
+    }
+
+    executeCommand(command);
+
+    if (hasInputRedirection)
+    {
+        fclose(stdin);
+    }
+    if (hasOutputRedirection)
+    {
+        fclose(stdout);
+    }
+
     exit(0);
 }
 
 int main()
 {
-    char inputBuffer[25];
+    char inputBuffer[50];
     char cwd[PATH_MAX];
     int status;
+    char dest[2];
     int ampersAnd = 1;
     node head = NULL;
+    pid_t pid;
     while (1)
     {
+        fflush(stdin);
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
-            if (ampersAnd == 0)
-            {
-                node p;
-                p = head;
-                while (p != NULL)
-                {
-                    pid_t return_pid = waitpid(p->id, &status, WNOHANG);
-                    if (p->id == return_pid)
-                    {
-                        printf("Exit status [%s] = %d \n", p->command, status);
-                    }
-
-                    p = p->next;
-                }
-            }
-            bzero(inputBuffer, 25);
+            bzero(inputBuffer, 50);
             printf("%s: ", cwd);
-            fgets(inputBuffer, 25, stdin);
+            fgets(inputBuffer, 50, stdin);
+
+            // Looks for End-of-line character ctrl-d
             if (feof(stdin))
             {
                 exit(0);
             }
+
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
-            printf("Your entered text was: %s\n", inputBuffer);
-            ampersAnd = strcmp(&inputBuffer[strlen(inputBuffer) - 1], "&");
+            strncpy(dest, inputBuffer, 2);
+            ampersAnd = strcmp(strlen(inputBuffer) - 1, "&");
             if (ampersAnd == 0)
             {
                 inputBuffer[strlen(inputBuffer) - 1] = '\0';
             }
-            if (fork() == 0)
+            if (!strcmp(dest, "cd"))
             {
-                addNode(head, getpid(), inputBuffer);
                 executeCommand(inputBuffer);
             }
-            else if (ampersAnd != 0)
+            else
             {
-                waitpid(-1, &status, 0);
-                printf("Exit status [%s] = %d \n", inputBuffer, status);
+                pid = fork();
+                if (pid == 0)
+                {
+                    handleCommand(inputBuffer);
+                }
+                else
+                {
+                    waitpid(-1, &status, 0);
+                    printf("Exit status [%s] = %d \n", inputBuffer, status);
+                }
             }
             fflush(stdout);
         }
@@ -138,4 +257,8 @@ int main()
     }
 
     return 0;
+}
+if (pid == 0)
+{
+    executeCommand(inputBuffer);
 }

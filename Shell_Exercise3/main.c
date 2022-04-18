@@ -2,49 +2,167 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
-char **splitPath(char *path, char **arguments)
+char *getWorkingDir()
 {
-    int i = 0;
-    char delemit[] = " \t";
-    char *param = strtok(path, delemit);
-    if (param != NULL)
+    char cwd[PATH_MAX];
+    if (getcwd(cwd, sizeof(cwd)) != NULL)
     {
-        arguments[i++] = param;
+        return cwd;
     }
     else
     {
-        arguments[i] = path;
-        return arguments;
+        perror("getcwd() error");
+        return "error";
     }
-    while (param != NULL)
+}
+
+void changeDir(const char *path)
+{
+    // Ignorerer tom path
+    if (!strcmp(path, ""))
     {
-        param = strtok(NULL, delemit);
-        if (param != NULL)
-        {
-            arguments[i++] = param;
-        }
+        return;
     }
-    return arguments;
+
+    int dirVal = chdir(path);
+
+    // Hvis path ikke finnes:
+    if (dirVal == -1)
+    {
+        printf("cd: no such file or directory: %s\n", path);
+    }
+}
+
+int executeCommand(char *command)
+{
+    char *newArg;
+    char *args[10];
+    newArg = strtok(command, " \t");
+    int i = 0;
+    while (newArg != NULL)
+    {
+        args[i] = newArg;
+        i++;
+        newArg = strtok(NULL, " \t");
+    }
+    args[i] = NULL;
+    if (!strcmp(args[0], "cd"))
+    {
+        changeDir(args[1]);
+    }
+    else
+    {
+        execvp(args[0], args);
+    }
+}
+
+int handleCommand(char *inputBuffer)
+{
+    char *command;
+    char *inputDest;
+    char *outputDest;
+
+    size_t outputRedLoc = strcspn(inputBuffer, ">");
+    size_t inputRedLoc = strcspn(inputBuffer, "<");
+
+    long hasInputRedirection = strlen(inputBuffer) - inputRedLoc;
+    long hasOutputRedirection = strlen(inputBuffer) - outputRedLoc;
+
+    if (hasInputRedirection && hasOutputRedirection)
+    {
+        if (inputRedLoc < outputRedLoc)
+        {
+            command = strtok(inputBuffer, "<>");
+            inputDest = strtok(NULL, "<>");
+            outputDest = strtok(NULL, "<>");
+        }
+        else
+        {
+            command = strtok(inputBuffer, "<>");
+            outputDest = strtok(NULL, "<>");
+            inputDest = strtok(NULL, "<>");
+        }
+        outputDest++;
+        inputDest++;
+        inputDest[strlen(inputDest) - 1] = '\0';
+        freopen(inputDest, "r", stdin);
+        freopen(outputDest, "w", stdout);
+    }
+    else if (hasInputRedirection)
+    {
+        command = strtok(inputBuffer, "<>");
+        inputDest = strtok(NULL, "<>");
+        inputDest++;
+        freopen(inputDest, "r", stdin);
+    }
+    else if (hasOutputRedirection)
+    {
+        command = strtok(inputBuffer, "<>");
+        outputDest = strtok(NULL, "<>");
+        outputDest++;
+        freopen(outputDest, "w", stdout);
+    }
+    else
+    {
+        command = inputBuffer;
+    }
+
+    executeCommand(command);
+
+    if (hasInputRedirection)
+    {
+        fclose(stdin);
+    }
+    if (hasOutputRedirection)
+    {
+        fclose(stdout);
+    }
+
+    exit(0);
 }
 
 int main()
 {
-    char *enteredText;
+    char inputBuffer[50];
     char cwd[PATH_MAX];
-    char command[100];
-    char *arguments[10];
+    int status;
+    char dest[2];
+
     while (1)
     {
+        fflush(stdin);
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
-            bzero(enteredText, 25);
+            bzero(inputBuffer, 50);
             printf("%s: ", cwd);
-            scanf("%25s", enteredText);
-            printf("Your entered text was: %s\n", enteredText);
-            arguments = splitPath(enteredText, arguments);
-            strcpy(command, arguments);
-            printf("Your command was: %s \n", command);
+            fgets(inputBuffer, 50, stdin);
+
+            // Looks for End-of-line character ctrl-d
+            if (feof(stdin))
+            {
+                exit(0);
+            }
+
+            inputBuffer[strcspn(inputBuffer, "\n")] = 0;
+            strncpy(dest, inputBuffer, 2);
+            if (!strcmp(dest, "cd"))
+            {
+                executeCommand(inputBuffer);
+            }
+            else if (fork() == 0)
+            {
+                handleCommand(inputBuffer);
+            }
+            else
+            {
+                waitpid(-1, &status, 0);
+                printf("Exit status [%s] = %d \n", inputBuffer, status);
+            }
+            fflush(stdout);
         }
         else
         {
