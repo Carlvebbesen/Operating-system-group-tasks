@@ -6,6 +6,10 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+int printBackgroundProcesses() {
+
+}
+
 char *getWorkingDir()
 {
     char cwd[PATH_MAX];
