@@ -24,14 +24,13 @@ int executeCommand(char *command)
 {
     char *newArg;
     char *args[10];
-
-    newArg = strtok(command, " ");
+    newArg = strtok(inputBuffer, " \t");
     int i = 0;
     while (newArg != NULL)
     {
         args[i] = newArg;
         i++;
-        newArg = strtok(NULL, " ");
+        newArg = strtok(NULL, " \t");
     }
     args[i] = NULL;
     execvp(args[0], args);
