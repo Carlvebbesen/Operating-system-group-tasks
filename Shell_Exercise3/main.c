@@ -3,18 +3,21 @@
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
 // Linked list inspired by lecture slides.
 
-struct processNode {
+struct processNode
+{
     char *command;
     int pid;
     struct processNode *nextNode;
 };
 
-struct linkedList {
+struct linkedList
+{
     struct processNode *head;
     struct processNode *tail;
 };
@@ -70,6 +73,10 @@ int executeCommand(char *command)
     else
     {
         execvp(args[0], args);
+        if (errno)
+        {
+            printf("%s: command not found\n", args[0]);
+        }
     }
 }
 
@@ -138,7 +145,7 @@ int handleCommand(char *inputBuffer)
     exit(0);
 }
 
-void addProcessNode(struct linkedList *processList, int pid, char* cmd)
+void addProcessNode(struct linkedList *processList, int pid, char *cmd)
 {
     struct processNode *newProcessNode = malloc(sizeof(struct processNode));
     char *command = malloc(sizeof(cmd));
@@ -168,6 +175,7 @@ int main()
     char dest[3];
     struct linkedList *processList = malloc(sizeof(struct linkedList));
     int ampersAnd = 1;
+    int index;
 
     while (1)
     {
@@ -178,14 +186,14 @@ int main()
 
             struct processNode *nextProcess = processList->head;
 
-            while(nextProcess != NULL)
+            while (nextProcess != NULL)
             {
                 pid_t returnPid = waitpid(nextProcess->pid, &backgroundProcessStatus, WNOHANG);
                 if (returnPid == nextProcess->pid)
                 {
                     printf("Exit status [%s]: %d \n", nextProcess->command, backgroundProcessStatus);
                 }
-                
+
                 nextProcess = nextProcess->nextNode;
             }
 
@@ -211,7 +219,23 @@ int main()
             dest[2] = '\0';
             if (!strcmp(dest, "cd"))
             {
-                executeCommand(inputBuffer);
+                index = strlen(inputBuffer) - 1;
+                while (index > -1)
+                {
+                    if (inputBuffer[index] == ' ' || inputBuffer[index] == '\t')
+                    {
+                        index--;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                inputBuffer[index + 1] = '\0';
+                if (strlen(dest) != strlen(inputBuffer))
+                {
+                    executeCommand(inputBuffer);
+                }
             }
             else
             {
@@ -222,7 +246,8 @@ int main()
                 }
                 else
                 {
-                    if (ampersAnd == 0) {
+                    if (ampersAnd == 0)
+                    {
                         addProcessNode(processList, child_pid, inputBuffer);
                     }
                     else
