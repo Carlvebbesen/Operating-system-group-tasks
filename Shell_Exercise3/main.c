@@ -174,8 +174,12 @@ int main()
     int backgroundProcessStatus;
     char dest[3];
     struct linkedList *processList = malloc(sizeof(struct linkedList));
+<<<<<<< Updated upstream
     int ampersAnd = 1;
     int index;
+=======
+    int isBackground = 0;
+>>>>>>> Stashed changes
 
     while (1)
     {
@@ -208,9 +212,9 @@ int main()
 
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
 
-            ampersAnd = strcmp(&inputBuffer[strlen(inputBuffer) - 1], "&");
+            isBackground = strcmp(&inputBuffer[strlen(inputBuffer) - 1], "&") == 0;
 
-            if (ampersAnd == 0)
+            if (isBackground)
             {
                 inputBuffer[strlen(inputBuffer) - 1] = '\0';
             }
@@ -219,6 +223,7 @@ int main()
             dest[2] = '\0';
             if (!strcmp(dest, "cd"))
             {
+<<<<<<< Updated upstream
                 index = strlen(inputBuffer) - 1;
                 while (index > -1)
                 {
@@ -236,6 +241,10 @@ int main()
                 {
                     executeCommand(inputBuffer);
                 }
+=======
+                printf("Cd command \n");
+                executeCommand(inputBuffer);
+>>>>>>> Stashed changes
             }
             else
             {
@@ -246,8 +255,12 @@ int main()
                 }
                 else
                 {
+<<<<<<< Updated upstream
                     if (ampersAnd == 0)
                     {
+=======
+                    if (isBackground) {
+>>>>>>> Stashed changes
                         addProcessNode(processList, child_pid, inputBuffer);
                     }
                     else
