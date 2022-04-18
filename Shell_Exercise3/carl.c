@@ -113,7 +113,7 @@ int main()
             }
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
             printf("Your entered text was: %s\n", inputBuffer);
-            ampersAnd = strcmp(&inputBuffer[strlen(inputBuffer) - 1], '&');
+            ampersAnd = strcmp(&inputBuffer[strlen(inputBuffer) - 1], "&");
             if (ampersAnd == 0)
             {
                 inputBuffer[strlen(inputBuffer) - 1] = '\0';
