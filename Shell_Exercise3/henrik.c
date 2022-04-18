@@ -20,11 +20,12 @@ char *getWorkingDir()
     }
 }
 
-int executeCommand(char *inputBuffer)
+int executeCommand(char *command)
 {
     char *newArg;
     char *args[10];
-    newArg = strtok(inputBuffer, " ");
+
+    newArg = strtok(command, " ");
     int i = 0;
     while (newArg != NULL)
     {
@@ -34,29 +35,72 @@ int executeCommand(char *inputBuffer)
     }
     args[i] = NULL;
     execvp(args[0], args);
+}
+
+int handleCommand(char *inputBuffer)
+{
+    char *command;
+    char *inputDest;
+    char *outputDest;
+
+    //command = strtok(inputBuffer, "<>");
+    printf("%ld \n", strcspn(inputBuffer, ">"));
+    printf("%ld \n", strcspn(inputBuffer, "&"));
+    printf("%ld \n", strcspn(inputBuffer, "<"));
+
+    printf("%s \n", strtok(inputBuffer, "<>"));
+    printf("%s \n", strtok(NULL, ">"));
+    size_t outputRedLoc = strcspn(inputBuffer, ">");
+    size_t inputRedLoc = strcspn(inputBuffer, "<");
+
+    
+
+    if (inputDest != NULL)
+    {
+        freopen(inputDest, "r", stdin);
+    }
+    if (outputDest != NULL)
+    {
+        freopen(outputDest, "w", stdout);
+    }
+
+    executeCommand(command);
+
+    if (inputDest != NULL)
+    {
+        fclose(stdin);
+    }
+    if (outputDest != NULL)
+    {
+        fclose(stdout);
+    }
+
     exit(0);
 }
 
 int main()
 {
-    char inputBuffer[25];
+    char inputBuffer[50];
     char cwd[PATH_MAX];
     int status;
     while (1)
     {
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
-            bzero(inputBuffer, 25);
+            bzero(inputBuffer, 50);
             printf("%s: ", cwd);
-            fgets(inputBuffer, 25, stdin);
+            fgets(inputBuffer, 50, stdin);
+
+            // Looks for End-of-line character ctrl-d
             if (feof(stdin))
             {
                 exit(0);
             }
+
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
             if (fork() == 0)
             {
-                executeCommand(inputBuffer);
+                handleCommand(inputBuffer);
             }
             else
             {

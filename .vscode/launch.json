@@ -16,6 +16,7 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
+                {"text": "-gdb-set follow-fork-mode child"},
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
@@ -40,6 +41,7 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
+                {"text": "-gdb-set follow-fork-mode child"},
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
