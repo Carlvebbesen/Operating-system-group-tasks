@@ -213,19 +213,23 @@ int main()
             {
                 executeCommand(inputBuffer);
             }
-            else if ((child_pid = fork()) == 0)
-            {
-                handleCommand(inputBuffer);
-            }
             else
             {
-                if (!ampersAnd) {
-                    addProcessNode(processList, child_pid, inputBuffer);
+                child_pid = fork();
+                if (child_pid == 0)
+                {
+                    handleCommand(inputBuffer);
                 }
                 else
                 {
-                    waitpid(-1, &status, 0);
-                    printf("Exit status [%s] = %d \n", inputBuffer, status);
+                    if (ampersAnd == 0) {
+                        addProcessNode(processList, child_pid, inputBuffer);
+                    }
+                    else
+                    {
+                        waitpid(child_pid, &status, 0);
+                        printf("Exit status [%s] = %d \n", inputBuffer, status);
+                    }
                 }
             }
             fflush(stdout);
