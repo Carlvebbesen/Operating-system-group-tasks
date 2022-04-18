@@ -130,7 +130,7 @@ int main()
     char inputBuffer[50];
     char cwd[PATH_MAX];
     int status;
-    char dest[2];
+    char dest[3];
 
     while (1)
     {
@@ -149,6 +149,7 @@ int main()
 
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
             strncpy(dest, inputBuffer, 2);
+            dest[2] = '\0';
             if (!strcmp(dest, "cd"))
             {
                 executeCommand(inputBuffer);
