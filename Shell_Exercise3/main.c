@@ -6,6 +6,19 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+// Linked list inspired by lecture slides.
+
+struct processNode {
+    char *command;
+    int pid;
+    struct processNode *nextNode;
+};
+
+struct linkedList {
+    struct processNode *head;
+    struct processNode *tail;
+};
+
 char *getWorkingDir()
 {
     char cwd[PATH_MAX];
@@ -125,12 +138,36 @@ int handleCommand(char *inputBuffer)
     exit(0);
 }
 
+void addProcessNode(struct linkedList *processList, int pid, char* cmd)
+{
+    struct processNode *newProcessNode = malloc(sizeof(struct processNode));
+    char *command = malloc(sizeof(cmd));
+    strcpy(command, cmd);
+    newProcessNode->pid = pid;
+    newProcessNode->command = command;
+    newProcessNode->nextNode = NULL;
+    if (processList->head == NULL)
+    {
+        processList->head = newProcessNode;
+        processList->tail = newProcessNode;
+    }
+    else
+    {
+        processList->tail->nextNode = newProcessNode;
+        processList->tail = newProcessNode;
+    }
+}
+
 int main()
 {
     char inputBuffer[50];
+    int child_pid;
     char cwd[PATH_MAX];
     int status;
+    int backgroundProcessStatus;
     char dest[3];
+    struct linkedList *processList = malloc(sizeof(struct linkedList));
+    int ampersAnd = 1;
 
     while (1)
     {
@@ -138,6 +175,20 @@ int main()
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
             bzero(inputBuffer, 50);
+
+            struct processNode *nextProcess = processList->head;
+
+            while(nextProcess != NULL)
+            {
+                pid_t returnPid = waitpid(nextProcess->pid, &backgroundProcessStatus, WNOHANG);
+                if (returnPid == nextProcess->pid)
+                {
+                    printf("Exit status [%s]: %d \n", nextProcess->command, backgroundProcessStatus);
+                }
+                
+                nextProcess = nextProcess->nextNode;
+            }
+
             printf("%s: ", cwd);
             fgets(inputBuffer, 50, stdin);
 
@@ -148,20 +199,34 @@ int main()
             }
 
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
+
+            ampersAnd = strcmp(&inputBuffer[strlen(inputBuffer) - 1], "&");
+
+            if (ampersAnd == 0)
+            {
+                inputBuffer[strlen(inputBuffer) - 1] = '\0';
+            }
+
             strncpy(dest, inputBuffer, 2);
             dest[2] = '\0';
             if (!strcmp(dest, "cd"))
             {
                 executeCommand(inputBuffer);
             }
-            else if (fork() == 0)
+            else if ((child_pid = fork()) == 0)
             {
                 handleCommand(inputBuffer);
             }
             else
             {
-                waitpid(-1, &status, 0);
-                printf("Exit status [%s] = %d \n", inputBuffer, status);
+                if (!ampersAnd) {
+                    addProcessNode(processList, child_pid, inputBuffer);
+                }
+                else
+                {
+                    waitpid(-1, &status, 0);
+                    printf("Exit status [%s] = %d \n", inputBuffer, status);
+                }
             }
             fflush(stdout);
         }
