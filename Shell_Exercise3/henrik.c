@@ -20,11 +20,25 @@ char *getWorkingDir()
     }
 }
 
+void changeDir(const char *path) {
+    //Ignorerer tom path
+    if (!strcmp(path, "")) {
+        return;
+    }
+
+    int dirVal = chdir(path);
+
+    //Hvis path ikke finnes:
+    if (dirVal == -1) {
+        printf("cd: no such file or directory: %s\n", path);
+    }
+}
+
 int executeCommand(char *command)
 {
     char *newArg;
     char *args[10];
-    newArg = strtok(inputBuffer, " \t");
+    newArg = strtok(command, " \t");
     int i = 0;
     while (newArg != NULL)
     {
@@ -33,7 +47,13 @@ int executeCommand(char *command)
         newArg = strtok(NULL, " \t");
     }
     args[i] = NULL;
-    execvp(args[0], args);
+    if (!strcmp(args[0], "cd")) {
+        changeDir(args[1]);
+    }
+    else
+    {
+        execvp(args[0], args);
+    }
 }
 
 int handleCommand(char *inputBuffer)
@@ -42,34 +62,58 @@ int handleCommand(char *inputBuffer)
     char *inputDest;
     char *outputDest;
 
-    //command = strtok(inputBuffer, "<>");
-    printf("%ld \n", strcspn(inputBuffer, ">"));
-    printf("%ld \n", strcspn(inputBuffer, "&"));
-    printf("%ld \n", strcspn(inputBuffer, "<"));
-
-    printf("%s \n", strtok(inputBuffer, "<>"));
-    printf("%s \n", strtok(NULL, ">"));
     size_t outputRedLoc = strcspn(inputBuffer, ">");
     size_t inputRedLoc = strcspn(inputBuffer, "<");
 
-    
+    long hasInputRedirection = strlen(inputBuffer) - inputRedLoc;
+    long hasOutputRedirection = strlen(inputBuffer) - outputRedLoc;
 
-    if (inputDest != NULL)
+    if (hasInputRedirection && hasOutputRedirection)
     {
+        if (inputRedLoc < outputRedLoc)
+        {
+            command = strtok(inputBuffer, "<>");
+            inputDest = strtok(NULL, "<>");
+            outputDest = strtok(NULL, "<>");
+        }
+        else
+        {
+            command = strtok(inputBuffer, "<>");
+            outputDest = strtok(NULL, "<>");
+            inputDest = strtok(NULL, "<>");
+        }
+        outputDest++;
+        inputDest++;
+
+        freopen(inputDest, "r", stdin);
+        freopen(outputDest, "w", stdout);
+    }
+    else if (hasInputRedirection)
+    {
+        command = strtok(inputBuffer, "<>");
+        inputDest = strtok(NULL, "<>");
+        inputDest++;
         freopen(inputDest, "r", stdin);
     }
-    if (outputDest != NULL)
+    else if (hasOutputRedirection)
     {
+        command = strtok(inputBuffer, "<>");
+        outputDest = strtok(NULL, "<>");
+        outputDest++;
         freopen(outputDest, "w", stdout);
+    }
+    else
+    {
+        command = inputBuffer;
     }
 
     executeCommand(command);
 
-    if (inputDest != NULL)
+    if (hasInputRedirection)
     {
         fclose(stdin);
     }
-    if (outputDest != NULL)
+    if (hasOutputRedirection)
     {
         fclose(stdout);
     }
@@ -82,8 +126,11 @@ int main()
     char inputBuffer[50];
     char cwd[PATH_MAX];
     int status;
+    char dest[2];
+
     while (1)
     {
+        fflush(stdin);
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
             bzero(inputBuffer, 50);
@@ -97,7 +144,13 @@ int main()
             }
 
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
-            if (fork() == 0)
+            memset(dest, '\0', sizeof(dest));
+            strncpy(dest, inputBuffer, 2);
+            printf("Dest: %s \n", dest);
+            if (!strcmp(dest, "cd")) {
+                executeCommand(inputBuffer);
+            }
+            else if (fork() == 0)
             {
                 handleCommand(inputBuffer);
             }

@@ -65,6 +65,7 @@ int main()
     char cwd[PATH_MAX];
     char *enteredText;
     int status;
+    char dest[2];
 
     while (1)
     {
@@ -78,9 +79,8 @@ int main()
                 exit(0);
             }
             command[strcspn(command, "\n")] = 0;
-            char dest[2];
             strncpy(dest, command, 2);
-
+            
             //For å droppe forking om kommandoen er cd
             if (!strcmp(dest, "cd")) {
                 executeCommand(command);

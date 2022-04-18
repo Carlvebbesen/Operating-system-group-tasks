@@ -7,9 +7,6 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "sem.c",
-                "bbuffer.c",
-                "-pthread",
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
@@ -30,9 +27,6 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "sem.c",
-                "bbuffer.c",
-                "-pthread",
                 "${file}",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}"
