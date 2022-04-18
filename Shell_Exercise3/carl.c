@@ -66,6 +66,7 @@ int executeCommand(char *inputBuffer)
     char *args[10];
     newArg = strtok(inputBuffer, " \t");
     int i = 0;
+    sleep(3);
     while (newArg != NULL)
     {
         args[i] = newArg;
@@ -94,11 +95,12 @@ int main()
                 p = head;
                 while (p != NULL)
                 {
-                    waitpid(p->id, &status, WNOHANG);
-                    if (status == exited)
+                    pid_t return_pid = waitpid(p->id, &status, WNOHANG);
+                    if (p->id == return_pid)
                     {
                         printf("Exit status [%s] = %d \n", p->command, status);
                     }
+
                     p = p->next;
                 }
             }
@@ -111,7 +113,7 @@ int main()
             }
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
             printf("Your entered text was: %s\n", inputBuffer);
-            ampersAnd = strcmp(inputBuffer[strlen(inputBuffer) - 1], '&');
+            ampersAnd = strcmp(&inputBuffer[strlen(inputBuffer) - 1], '&');
             if (ampersAnd == 0)
             {
                 inputBuffer[strlen(inputBuffer) - 1] = '\0';
