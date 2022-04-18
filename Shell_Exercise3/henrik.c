@@ -84,7 +84,7 @@ int handleCommand(char *inputBuffer)
         }
         outputDest++;
         inputDest++;
-
+        inputDest[strlen(inputDest) - 1] = '\0';
         freopen(inputDest, "r", stdin);
         freopen(outputDest, "w", stdout);
     }
@@ -144,9 +144,7 @@ int main()
             }
 
             inputBuffer[strcspn(inputBuffer, "\n")] = 0;
-            memset(dest, '\0', sizeof(dest));
             strncpy(dest, inputBuffer, 2);
-            printf("Dest: %s \n", dest);
             if (!strcmp(dest, "cd")) {
                 executeCommand(inputBuffer);
             }
