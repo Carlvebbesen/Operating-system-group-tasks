@@ -56,7 +56,7 @@ void changeDir(const char *path)
 int executeCommand(char *command)
 {
     char *newArg;
-    char *args[10];
+    char *args[50];
     newArg = strtok(command, " \t");
     int i = 0;
     while (newArg != NULL)
