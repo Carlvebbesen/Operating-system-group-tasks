@@ -38,11 +38,6 @@ char *getWorkingDir()
 
 void changeDir(const char *path)
 {
-    // Ignorerer tom path
-    if (!strcmp(path, ""))
-    {
-        return;
-    }
 
     int dirVal = chdir(path);
 
