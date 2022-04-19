@@ -186,7 +186,6 @@ int main()
             bzero(inputBuffer, 50);
 
             struct processNode *nextProcess = processList->head;
-            struct processNode *nextProcessHead = processList->head;
 
             while (nextProcess != NULL)
             {
@@ -194,9 +193,26 @@ int main()
                 if (returnPid == nextProcess->pid)
                 {
                     printf("Exit status [%s]: %d \n", nextProcess->command, backgroundProcessStatus);
+                    struct processNode *temp = processList->head;
+                    while (temp != NULL)
+                    {
+                        if (temp->nextNode->pid == nextProcess->pid)
+                        {
+                            temp->nextNode = nextProcess->nextNode;
+                            free(nextProcess);
+                            break;
+                        }
+                        temp = temp->nextNode;
+                    }
+                    if (temp != NULL)
+                    {
+                        nextProcess = temp->nextNode;
+                    }
                 }
-
-                nextProcess = nextProcess->nextNode;
+                else
+                {
+                    nextProcess = nextProcess->nextNode;
+                }
             }
 
             printf("%s: ", cwd);
