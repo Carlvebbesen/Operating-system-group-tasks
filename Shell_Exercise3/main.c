@@ -168,7 +168,7 @@ void addProcessNode(struct linkedList *processList, int pid, char *cmd)
 
 int main()
 {
-    char inputBuffer[50];
+    char inputBuffer[512];
     int child_pid;
     char cwd[PATH_MAX];
     int status;
@@ -184,7 +184,7 @@ int main()
         fflush(stdin);
         if (getcwd(cwd, sizeof(cwd)) != NULL)
         {
-            bzero(inputBuffer, 50);
+            bzero(inputBuffer, 512);
 
             struct processNode *nextProcess = processList->head;
             struct processNode *prevProcess = NULL;
@@ -213,7 +213,7 @@ int main()
             }
 
             printf("%s: ", cwd);
-            fgets(inputBuffer, 50, stdin);
+            fgets(inputBuffer, 512, stdin);
 
             // Looks for End-of-line character ctrl-d
             if (feof(stdin))
