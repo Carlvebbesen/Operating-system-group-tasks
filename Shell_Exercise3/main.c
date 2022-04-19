@@ -38,10 +38,8 @@ char *getWorkingDir()
 
 void changeDir(const char *path)
 {
-
     int dirVal = chdir(path);
 
-    // Hvis path ikke finnes:
     if (dirVal == -1)
     {
         printf("cd: no such file or directory: %s\n", path);
