@@ -58,6 +58,7 @@ int executeCommand(char *command)
             printf("Flush: command not found: %s\n", args[0]);
         }
     }
+    return 0;
 }
 
 int handleCommand(char *inputBuffer)
@@ -121,7 +122,6 @@ int handleCommand(char *inputBuffer)
     {
         fclose(stdout);
     }
-
     exit(0);
 }
 
