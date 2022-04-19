@@ -73,6 +73,7 @@ int executeCommand(char *command)
     else
     {
         execvp(args[0], args);
+        printf("\n");
         if (errno)
         {
             printf("Flush: command not found: %s\n", args[0]);
@@ -204,7 +205,8 @@ int main()
                     }
                     free(nextProcess);
                 }
-                else{
+                else
+                {
                     prevProcess = nextProcess;
                 }
                 nextProcess = nextProcess->nextNode;
